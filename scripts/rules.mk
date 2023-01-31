@@ -20,6 +20,12 @@ PWD?=$(shell pwd)
 BSV_TOOLS_PY:=$(BSV_TOOLS)/scripts/bsvTools.py
 BSV_DEPS:=$(BSV_TOOLS)/scripts/bsvDeps.py
 
+ifeq (, $(shell which git))
+$(warning "No git in $(PATH), author name in Bender export will be missing")
+else
+	AUTHOR?=$(shell git config user.name) <$(shell git config user.email)>
+endif
+
 BASH:=$(shell which bash)
 RM:=$(shell which rm)
 MKDIR:=$(shell which mkdir)
@@ -96,6 +102,19 @@ endif
 
 compile_top: $(BUILDDIR)/bsc_defines | directories
 	$(SILENTCMD)$(BSV) -elab -verilog $(COMPLETE_FLAGS) $(BSC_FLAGS) -g $(TOP_MODULE) -u $(SRCDIR)/$(MAIN_MODULE).bsv
+
+bender: ip
+	@$(RM) -rf $(BUILDDIR)/bender/$(PROJECT_NAME)
+	@$(MKDIR) -p $(BUILDDIR)/bender/$(PROJECT_NAME)
+	@cp -r $(BUILDDIR)/ip/$(PROJECT_NAME)/src $(BUILDDIR)/bender/$(PROJECT_NAME)
+	@echo "package:" > $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
+	@echo "  name: ${PROJECT_NAME}" >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
+	@echo "  authors:" >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
+	@echo "    - ${AUTHOR}" >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
+	@echo "" >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
+	@echo "sources:" >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
+	@$(foreach file, $(wildcard $(BUILDDIR)/bender/$(PROJECT_NAME)/src/*), echo "  - "$(patsubst $(BUILDDIR)/bender/$(PROJECT_NAME)/%,%,$(file)) >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml;)
+	@echo "Bender project created under "$(BUILDDIR)/bender/$(PROJECT_NAME)
 
 else
 BASEPARAMS=-sim
