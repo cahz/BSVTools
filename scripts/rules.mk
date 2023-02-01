@@ -116,6 +116,22 @@ bender: ip
 	@$(foreach file, $(wildcard $(BUILDDIR)/bender/$(PROJECT_NAME)/src/*), echo "  - "$(patsubst $(BUILDDIR)/bender/$(PROJECT_NAME)/%,%,$(file)) >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml;)
 	@echo "Bender project created under "$(BUILDDIR)/bender/$(PROJECT_NAME)
 
+ifeq (,$(OPENLANE_DIR))
+openlane:
+	@echo "Please set the \$$OPENLANE_DIR environment variable"
+else
+openlane: ip
+	@$(RM) -rf $(OPENLANE_DIR)/designs/$(TOP_MODULE)
+	@$(MKDIR) -p $(OPENLANE_DIR)/designs/$(TOP_MODULE)
+	@cp -r $(BUILDDIR)/ip/$(PROJECT_NAME)/src $(OPENLANE_DIR)/designs/$(TOP_MODULE)
+	echo "{\"DESIGN_NAME\": \"${TOP_MODULE}\", \
+	\"VERILOG_FILES\": \"dir::src/*.v\", \
+	\"CLOCK_PORT\": \"CLK\", \
+	\"CLOCK_PERIOD\": 2000, \
+	\"FP_CORE_UTIL\": 10}" > $(OPENLANE_DIR)/designs/$(TOP_MODULE)/config.json
+	make -C $(OPENLANE_DIR) QUICK_RUN_DESIGN=$(TOP_MODULE) quick_run
+endif
+
 else
 BASEPARAMS=-sim
 BASEPARAMS_SIM=$(BASEPARAMS)
