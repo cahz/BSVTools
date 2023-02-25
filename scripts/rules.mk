@@ -113,7 +113,7 @@ bender: ip
 	@echo "    - ${AUTHOR}" >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
 	@echo "" >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
 	@echo "sources:" >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml
-	@$(foreach file, $(wildcard $(BUILDDIR)/bender/$(PROJECT_NAME)/src/*), echo "  - "$(patsubst $(BUILDDIR)/bender/$(PROJECT_NAME)/%,%,$(file)) >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml;)
+	@for file in $(BUILDDIR)/bender/$(PROJECT_NAME)/src/*; do echo "  - "$$(realpath --relative-to=$(BUILDDIR)/bender/$(PROJECT_NAME) $$file) >> $(BUILDDIR)/bender/$(PROJECT_NAME)/Bender.yml; done
 	@echo "Bender project created under "$(BUILDDIR)/bender/$(PROJECT_NAME)
 
 ifeq (,$(OPENLANE_DIR))
